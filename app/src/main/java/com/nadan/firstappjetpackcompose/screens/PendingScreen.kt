@@ -3,6 +3,7 @@ package com.nadan.firstappjetpackcompose.screens
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -31,6 +32,8 @@ import com.nadan.firstappjetpackcompose.viewmodel.TodoViewModel
 fun PendingScreen(
     viewModel: TodoViewModel,
     onLogout: () -> Unit,
+    onNavigateToDetail: (Int) -> Unit,
+    onNavigateToSettings: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val todos by viewModel.todos.collectAsState()
@@ -47,6 +50,7 @@ fun PendingScreen(
     Scaffold(
         topBar = {
             MainHeader(
+                onProfileClick = onNavigateToSettings,
                 onRefresh = { viewModel.fetchTodos() },
                 onLogout = onLogout
             )
@@ -90,7 +94,8 @@ fun PendingScreen(
                         TodoItem(
                             todo = todo,
                             onToggle = { viewModel.toggleTodo(todo.id) },
-                            onDelete = { viewModel.deleteTodo(todo.id) }
+                            onDelete = { viewModel.deleteTodo(todo.id) },
+                            onClick = { onNavigateToDetail(todo.id) }
                         )
                     }
                 }
@@ -114,10 +119,13 @@ fun TodoItem(
     todo: Todo,
     onToggle: () -> Unit,
     onDelete: () -> Unit,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)

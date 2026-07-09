@@ -83,9 +83,10 @@ fun LoginScreen(viewModel: AuthViewModel, onNavigateToSignUp: () -> Unit) {
             // Carte de formulaire
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(24.dp),
+                shape = RoundedCornerShape(28.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
             ) {
                 Column(
                     modifier = Modifier.padding(16.dp),
@@ -126,7 +127,7 @@ fun LoginScreen(viewModel: AuthViewModel, onNavigateToSignUp: () -> Unit) {
                             .fillMaxWidth()
                             .height(56.dp),
                         shape = RoundedCornerShape(16.dp),
-                        enabled = email.isNotBlank() && password.length >= 6
+                        enabled = email.isNotEmpty() && password.isNotEmpty()
                     ) {
                         Text(
                             "Se connecter",

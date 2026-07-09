@@ -75,4 +75,8 @@ class TodoViewModel : ViewModel() {
     fun deleteTodo(todoId: Int) {
         _todos.value = _todos.value.filterNot { it.id == todoId }
     }
+
+    fun getTodoById(id: Int): Todo? {
+        return _todos.value.find { it.id == id }
+    }
 }

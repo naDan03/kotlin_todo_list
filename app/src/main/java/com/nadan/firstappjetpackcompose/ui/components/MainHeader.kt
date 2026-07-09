@@ -1,6 +1,7 @@
 package com.nadan.firstappjetpackcompose.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -20,6 +21,7 @@ import androidx.compose.ui.unit.sp
 fun MainHeader(
     title: String = "Bonjour,",
     username: String = "naDan",
+    onProfileClick: () -> Unit = {},
     onRefresh: (() -> Unit)? = null,
     onLogout: () -> Unit
 ) {
@@ -35,7 +37,13 @@ fun MainHeader(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(16.dp))
+                    .clickable { onProfileClick() }
+                    .padding(4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 // Avatar moderne
                 Box(
                     modifier = Modifier

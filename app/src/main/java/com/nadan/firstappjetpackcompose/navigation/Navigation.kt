@@ -31,9 +31,9 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.nadan.firstappjetpackcompose.screens.CompletedScreen
-import com.nadan.firstappjetpackcompose.screens.PendingScreen
-import com.nadan.firstappjetpackcompose.screens.StatsScreen
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
+import com.nadan.firstappjetpackcompose.screens.*
 import com.nadan.firstappjetpackcompose.viewmodel.TodoViewModel
 
 sealed class Screen(val route: String, val title: String, val icon: ImageVector? = null) {
@@ -41,6 +41,8 @@ sealed class Screen(val route: String, val title: String, val icon: ImageVector?
     object Pending : Screen("pending", "À faire", Icons.Default.Assignment)
     object Completed : Screen("completed", "Terminé", Icons.Default.CheckCircle)
     object Stats : Screen("stats", "Statistiques", Icons.Default.ShowChart)
+    object TodoDetail : Screen("todo_detail/{todoId}", "Détails")
+    object Settings : Screen("settings", "Paramètres")
 }
 
 @Composable
@@ -56,13 +58,34 @@ fun TodoNavHost(
         modifier = modifier
     ) {
         composable(Screen.Pending.route) {
-            PendingScreen(viewModel = viewModel, onLogout = onLogout)
+            PendingScreen(
+                viewModel = viewModel, 
+                onLogout = onLogout,
+                onNavigateToDetail = { todoId -> 
+                    navController.navigate("todo_detail/$todoId") 
+                },
+                onNavigateToSettings = { navController.navigate(Screen.Settings.route) }
+            )
         }
         composable(Screen.Completed.route) {
             CompletedScreen(viewModel = viewModel, onLogout = onLogout)
         }
         composable(Screen.Stats.route) {
             StatsScreen(viewModel = viewModel, onLogout = onLogout)
+        }
+        composable(
+            route = Screen.TodoDetail.route,
+            arguments = listOf(navArgument("todoId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val todoId = backStackEntry.arguments?.getInt("todoId") ?: 0
+            TodoDetailScreen(
+                todoId = todoId,
+                viewModel = viewModel,
+                onBack = { navController.popBackStack() }
+            )
+        }
+        composable(Screen.Settings.route) {
+            SettingsScreen(onBack = { navController.popBackStack() })
         }
     }
 }
