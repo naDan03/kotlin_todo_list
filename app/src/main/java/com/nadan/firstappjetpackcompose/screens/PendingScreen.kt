@@ -1,21 +1,29 @@
 package com.nadan.firstappjetpackcompose.screens
 
+import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.ExitToApp
-import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.automirrored.rounded.Logout
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.nadan.firstappjetpackcompose.data.Todo
+import com.nadan.firstappjetpackcompose.ui.components.MainHeader
 import com.nadan.firstappjetpackcompose.viewmodel.TodoViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -32,57 +40,51 @@ fun PendingScreen(
     val pendingTodos = remember(todos) { todos.filterNot { it.isCompleted } }
     var showAddDialog by remember { mutableStateOf(false) }
 
+    val backgroundBrush = Brush.verticalGradient(
+        colors = listOf(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f), MaterialTheme.colorScheme.surface)
+    )
+
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("À faire naDan (${pendingTodos.size})") },
-                actions = {
-                    IconButton(onClick = { viewModel.fetchTodos() }) {
-                        Icon(Icons.Default.Refresh, contentDescription = "Actualiser")
-                    }
-                    IconButton(onClick = onLogout) {
-                        Icon(Icons.Default.ExitToApp, contentDescription = "Déconnexion")
-                    }
-                }
+            MainHeader(
+                onRefresh = { viewModel.fetchTodos() },
+                onLogout = onLogout
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { showAddDialog = true }) {
-                Icon(Icons.Default.Add, contentDescription = "Ajouter")
-            }
+            ExtendedFloatingActionButton(
+                onClick = { showAddDialog = true },
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+                shape = RoundedCornerShape(16.dp),
+                icon = { Icon(Icons.Default.Add, contentDescription = null) },
+                text = { Text("Ajouter") }
+            )
         },
-        modifier = modifier
+        modifier = modifier.background(backgroundBrush)
     ) { paddingValues ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues),
-            contentAlignment = Alignment.Center
+                .padding(paddingValues)
         ) {
             if (isLoading) {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    items(10) { // On affiche 10 squelettes
-                        TodoSkeletonItem()
-                    }
+                    items(6) { TodoSkeletonItem() }
                 }
             } else if (error != null) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(error ?: "Erreur inconnue", color = MaterialTheme.colorScheme.error)
-                    Button(onClick = { viewModel.fetchTodos() }) {
-                        Text("Réessayer")
-                    }
-                }
+                ErrorView(error ?: "Erreur", onRetry = { viewModel.fetchTodos() })
             } else if (pendingTodos.isEmpty()) {
-                Text("Aucune tâche en cours !")
+                EmptyView("Tout est fait ! Profitez de votre journée.", Icons.Rounded.DoneAll)
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(pendingTodos, key = { it.id }) { todo ->
                         TodoItem(
@@ -116,131 +118,119 @@ fun TodoItem(
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(2.dp)
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
+                .padding(12.dp)
+                .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                modifier = Modifier.weight(1f),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Checkbox(
-                    checked = todo.isCompleted,
-                    onCheckedChange = { onToggle() }
-                )
-                Column {
-                    Text(
-                        text = todo.title,
-                        style = MaterialTheme.typography.titleMedium
+            IconButton(
+                onClick = onToggle,
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .background(
+                        if (todo.isCompleted) MaterialTheme.colorScheme.primary.copy(0.1f) 
+                        else MaterialTheme.colorScheme.surfaceVariant
                     )
-                }
-            }
-            IconButton(onClick = onDelete) {
+            ) {
                 Icon(
-                    Icons.Default.Delete,
-                    contentDescription = "Supprimer",
-                    tint = MaterialTheme.colorScheme.error
+                    imageVector = if (todo.isCompleted) Icons.Rounded.CheckCircle else Icons.Rounded.RadioButtonUnchecked,
+                    contentDescription = null,
+                    tint = if (todo.isCompleted) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                 )
+            }
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = todo.title,
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                )
+            }
+
+            IconButton(
+                onClick = onDelete,
+                colors = IconButtonDefaults.iconButtonColors(contentColor = MaterialTheme.colorScheme.error.copy(alpha = 0.7f))
+            ) {
+                Icon(Icons.Rounded.DeleteOutline, contentDescription = "Supprimer")
             }
         }
+    }
+}
+
+@Composable
+fun EmptyView(message: String, icon: androidx.compose.ui.graphics.vector.ImageVector) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Icon(icon, contentDescription = null, modifier = Modifier.size(80.dp), tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(message, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+@Composable
+fun ErrorView(message: String, onRetry: () -> Unit) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Icon(Icons.Rounded.ErrorOutline, contentDescription = null, modifier = Modifier.size(60.dp), tint = MaterialTheme.colorScheme.error)
+        Text(message, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(16.dp))
+        Button(onClick = onRetry) { Text("Réessayer") }
     }
 }
 
 @Composable
 fun TodoSkeletonItem() {
-    val transition = rememberInfiniteTransition(label = "shimmer")
+    val transition = rememberInfiniteTransition(label = "")
     val alpha by transition.animateFloat(
-        initialValue = 0.2f,
-        targetValue = 0.5f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1000, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "alpha"
+        initialValue = 0.3f, targetValue = 0.6f,
+        animationSpec = infiniteRepeatable(tween(1000), RepeatMode.Reverse), label = ""
     )
-
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(2.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = alpha)
-        )
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            // Placeholder pour la Checkbox
-            Box(
-                modifier = Modifier
-                    .size(24.dp)
-                    .background(
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f),
-                        shape = androidx.compose.foundation.shape.CircleShape
-                    )
-            )
-            // Placeholder pour le texte
-            Box(
-                modifier = Modifier
-                    .height(16.dp)
-                    .fillMaxWidth(0.6f)
-                    .background(
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f),
-                        shape = MaterialTheme.shapes.small
-                    )
-            )
-        }
-    }
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(70.dp)
+            .clip(RoundedCornerShape(20.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = alpha))
+    )
 }
 
 @Composable
-fun AddTodoDialog(
-    onDismiss: () -> Unit,
-    onAdd: (String) -> Unit
-) {
+fun AddTodoDialog(onDismiss: () -> Unit, onAdd: (String) -> Unit) {
     var title by remember { mutableStateOf("") }
-
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Nouvelle tâche") },
+        shape = RoundedCornerShape(28.dp),
+        title = { Text("Nouvelle tâche", fontWeight = FontWeight.Bold) },
         text = {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                TextField(
-                    value = title,
-                    onValueChange = { title = it },
-                    label = { Text("Titre") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
+            OutlinedTextField(
+                value = title,
+                onValueChange = { title = it },
+                placeholder = { Text("Que faut-il faire ?") },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp)
+            )
         },
         confirmButton = {
-            TextButton(
-                onClick = {
-                    if (title.isNotBlank()) {
-                        onAdd(title)
-                    }
-                },
-                enabled = title.isNotBlank()
-            ) {
+            Button(onClick = { if(title.isNotBlank()) onAdd(title) }, shape = RoundedCornerShape(12.dp)) {
                 Text("Ajouter")
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Annuler")
-            }
+            TextButton(onClick = onDismiss) { Text("Annuler") }
         }
     )
 }

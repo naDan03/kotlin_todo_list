@@ -1,14 +1,23 @@
 package com.nadan.firstappjetpackcompose.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.nadan.firstappjetpackcompose.ui.components.MainHeader
 import com.nadan.firstappjetpackcompose.viewmodel.TodoViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -23,132 +32,137 @@ fun StatsScreen(
     val completedCount = remember(todos) { todos.filter { it.isCompleted }.size }
     val totalCount = remember(todos) { todos.size }
     val completionRate = remember(todos) {
-        if (totalCount > 0) (completedCount * 100) / totalCount else 0
+        if (totalCount > 0) (completedCount.toFloat() / totalCount.toFloat()) else 0f
     }
+
+    val backgroundBrush = Brush.verticalGradient(
+        colors = listOf(MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.1f), MaterialTheme.colorScheme.surface)
+    )
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Statistiques") },
-                actions = {
-                    IconButton(onClick = onLogout) {
-                        Icon(Icons.Default.ExitToApp, contentDescription = "Déconnexion")
-                    }
-                }
+            MainHeader(
+                title = "Analyses de",
+                onLogout = onLogout
             )
         },
-        modifier = modifier
+        modifier = modifier.background(backgroundBrush)
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(24.dp)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            StatsCard(
-                title = "Total",
-                value = totalCount.toString(),
-                description = "tâches au total",
-                modifier = Modifier.fillMaxWidth()
-            )
-            
-            Row(
+            // Carte de Progression Circulaire ou Linéaire Moderne
+            Card(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                shape = RoundedCornerShape(32.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f))
             ) {
-                StatsCard(
-                    title = "À faire",
-                    value = pendingCount.toString(),
-                    description = "tâches en cours",
-                    modifier = Modifier.weight(1f)
-                )
-                StatsCard(
-                    title = "Terminé",
-                    value = completedCount.toString(),
-                    description = "tâches faites",
-                    modifier = Modifier.weight(1f),
-                    highlight = true
-                )
-            }
-
-            if (totalCount > 0) {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    elevation = CardDefaults.cardElevation(2.dp)
+                Column(
+                    modifier = Modifier.padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Text(
-                            "Progression",
-                            style = MaterialTheme.typography.titleMedium
+                    Text(
+                        "Taux de complétion",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    Box(contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(
+                            progress = { completionRate },
+                            modifier = Modifier.size(120.dp),
+                            strokeWidth = 12.dp,
+                            trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                            strokeCap = androidx.compose.ui.graphics.StrokeCap.Round
                         )
-                        LinearProgressIndicator(
-                            progress = { completionRate / 100f },
-                            modifier = Modifier.fillMaxWidth(),
-                            color = MaterialTheme.colorScheme.primary
-                        )
                         Text(
-                            "$completionRate% complété",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            text = "${(completionRate * 100).toInt()}%",
+                            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.ExtraBold)
                         )
                     }
                 }
             }
 
+            // Grille de statistiques
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                ModernStatsCard(
+                    title = "À faire",
+                    value = pendingCount.toString(),
+                    icon = Icons.Rounded.PendingActions,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.weight(1f)
+                )
+                ModernStatsCard(
+                    title = "Fait",
+                    value = completedCount.toString(),
+                    icon = Icons.Rounded.TaskAlt,
+                    color = MaterialTheme.colorScheme.secondary,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            ModernStatsCard(
+                title = "Total des tâches",
+                value = totalCount.toString(),
+                icon = Icons.Rounded.List,
+                color = MaterialTheme.colorScheme.tertiary,
+                modifier = Modifier.fillMaxWidth()
+            )
+
             if (totalCount == 0) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("Commencez à ajouter des tâches !")
-                }
+                Text(
+                    "Aucune donnée disponible",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 32.dp)
+                )
             }
         }
     }
 }
 
 @Composable
-fun StatsCard(
+fun ModernStatsCard(
     title: String,
     value: String,
-    description: String,
-    modifier: Modifier = Modifier,
-    highlight: Boolean = false
+    icon: ImageVector,
+    color: Color,
+    modifier: Modifier = Modifier
 ) {
     Card(
         modifier = modifier,
-        colors = if (highlight) {
-            CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer
-            )
-        } else {
-            CardDefaults.cardColors()
-        },
-        elevation = CardDefaults.cardElevation(2.dp)
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.Start
         ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = color,
+                modifier = Modifier.size(28.dp)
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(12.dp))
             Text(
                 text = value,
-                style = MaterialTheme.typography.displayMedium,
-                fontWeight = FontWeight.Bold
+                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold)
             )
-            Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = description,
-                style = MaterialTheme.typography.bodySmall,
+                text = title,
+                style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
