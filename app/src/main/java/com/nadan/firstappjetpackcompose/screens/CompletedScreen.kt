@@ -5,6 +5,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -17,6 +18,7 @@ import com.nadan.firstappjetpackcompose.viewmodel.TodoViewModel
 @Composable
 fun CompletedScreen(
     viewModel: TodoViewModel,
+    onLogout: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val todos by viewModel.todos.collectAsState()
@@ -25,7 +27,12 @@ fun CompletedScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Terminé") }
+                title = { Text("Terminé") },
+                actions = {
+                    IconButton(onClick = onLogout) {
+                        Icon(Icons.Default.ExitToApp, contentDescription = "Déconnexion")
+                    }
+                }
             )
         },
         modifier = modifier

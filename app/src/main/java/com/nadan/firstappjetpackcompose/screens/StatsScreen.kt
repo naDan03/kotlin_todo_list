@@ -1,6 +1,8 @@
 package com.nadan.firstappjetpackcompose.screens
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -13,6 +15,7 @@ import com.nadan.firstappjetpackcompose.viewmodel.TodoViewModel
 @Composable
 fun StatsScreen(
     viewModel: TodoViewModel,
+    onLogout: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val todos by viewModel.todos.collectAsState()
@@ -26,7 +29,12 @@ fun StatsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Statistiques") }
+                title = { Text("Statistiques") },
+                actions = {
+                    IconButton(onClick = onLogout) {
+                        Icon(Icons.Default.ExitToApp, contentDescription = "Déconnexion")
+                    }
+                }
             )
         },
         modifier = modifier

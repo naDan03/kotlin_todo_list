@@ -18,7 +18,8 @@ import com.nadan.firstappjetpackcompose.screens.PendingScreen
 import com.nadan.firstappjetpackcompose.screens.StatsScreen
 import com.nadan.firstappjetpackcompose.viewmodel.TodoViewModel
 
-sealed class Screen(val route: String, val title: String, val icon: androidx.compose.ui.graphics.vector.ImageVector) {
+sealed class Screen(val route: String, val title: String, val icon: androidx.compose.ui.graphics.vector.ImageVector? = null) {
+    object Login : Screen("login", "Connexion")
     object Pending : Screen("pending", "À faire", Icons.Default.Assignment)
     object Completed : Screen("completed", "Terminé", Icons.Default.CheckCircle)
     object Stats : Screen("stats", "Statistiques", Icons.Default.ShowChart)
@@ -27,6 +28,7 @@ sealed class Screen(val route: String, val title: String, val icon: androidx.com
 @Composable
 fun TodoNavHost(
     navController: NavHostController,
+    onLogout: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: TodoViewModel = viewModel()
 ) {
@@ -36,13 +38,13 @@ fun TodoNavHost(
         modifier = modifier
     ) {
         composable(Screen.Pending.route) {
-            PendingScreen(viewModel = viewModel)
+            PendingScreen(viewModel = viewModel, onLogout = onLogout)
         }
         composable(Screen.Completed.route) {
-            CompletedScreen(viewModel = viewModel)
+            CompletedScreen(viewModel = viewModel, onLogout = onLogout)
         }
         composable(Screen.Stats.route) {
-            StatsScreen(viewModel = viewModel)
+            StatsScreen(viewModel = viewModel, onLogout = onLogout)
         }
     }
 }
@@ -52,6 +54,7 @@ fun TodoBottomBar(
     navController: NavHostController,
     modifier: Modifier = Modifier
 ) {
+    // On n'affiche que les écrans qui ont une icône (donc pas le Login)
     val screens = listOf(Screen.Pending, Screen.Completed, Screen.Stats)
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
@@ -61,7 +64,11 @@ fun TodoBottomBar(
     ) {
         screens.forEach { screen ->
             NavigationBarItem(
-                icon = { Icon(screen.icon, contentDescription = screen.title) },
+                icon = { 
+                    screen.icon?.let { 
+                        Icon(it, contentDescription = screen.title) 
+                    }
+                },
                 label = { Text(screen.title) },
                 selected = currentDestination?.route == screen.route,
                 onClick = {
