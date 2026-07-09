@@ -19,6 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.nadan.firstappjetpackcompose.data.Todo
+import androidx.compose.foundation.clickable
 import com.nadan.firstappjetpackcompose.ui.components.MainHeader
 import com.nadan.firstappjetpackcompose.viewmodel.TodoViewModel
 
@@ -27,6 +28,8 @@ import com.nadan.firstappjetpackcompose.viewmodel.TodoViewModel
 fun CompletedScreen(
     viewModel: TodoViewModel,
     onLogout: () -> Unit,
+    onNavigateToDetail: (Int) -> Unit,
+    onNavigateToSettings: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val todos by viewModel.todos.collectAsState()
@@ -40,6 +43,7 @@ fun CompletedScreen(
         topBar = {
             MainHeader(
                 title = "Accompli,",
+                onProfileClick = onNavigateToSettings,
                 onLogout = onLogout
             )
         },
@@ -62,7 +66,8 @@ fun CompletedScreen(
                         CompletedTodoItem(
                             todo = todo,
                             onToggle = { viewModel.toggleTodo(todo.id) },
-                            onDelete = { viewModel.deleteTodo(todo.id) }
+                            onDelete = { viewModel.deleteTodo(todo.id) },
+                            onClick = { onNavigateToDetail(todo.id) }
                         )
                     }
                 }
@@ -76,10 +81,13 @@ fun CompletedTodoItem(
     todo: Todo,
     onToggle: () -> Unit,
     onDelete: () -> Unit,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f)),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),

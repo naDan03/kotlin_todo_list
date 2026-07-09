@@ -25,6 +25,7 @@ import com.nadan.firstappjetpackcompose.viewmodel.TodoViewModel
 fun StatsScreen(
     viewModel: TodoViewModel,
     onLogout: () -> Unit,
+    onNavigateToSettings: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val todos by viewModel.todos.collectAsState()
@@ -43,6 +44,7 @@ fun StatsScreen(
         topBar = {
             MainHeader(
                 title = "Analyses de",
+                onProfileClick = onNavigateToSettings,
                 onLogout = onLogout
             )
         },

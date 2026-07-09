@@ -68,10 +68,21 @@ fun TodoNavHost(
             )
         }
         composable(Screen.Completed.route) {
-            CompletedScreen(viewModel = viewModel, onLogout = onLogout)
+            CompletedScreen(
+                viewModel = viewModel, 
+                onLogout = onLogout,
+                onNavigateToDetail = { todoId -> 
+                    navController.navigate("todo_detail/$todoId") 
+                },
+                onNavigateToSettings = { navController.navigate(Screen.Settings.route) }
+            )
         }
         composable(Screen.Stats.route) {
-            StatsScreen(viewModel = viewModel, onLogout = onLogout)
+            StatsScreen(
+                viewModel = viewModel, 
+                onLogout = onLogout,
+                onNavigateToSettings = { navController.navigate(Screen.Settings.route) }
+            )
         }
         composable(
             route = Screen.TodoDetail.route,
