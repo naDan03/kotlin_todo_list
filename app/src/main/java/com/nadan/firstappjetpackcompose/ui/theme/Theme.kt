@@ -53,14 +53,14 @@ fun FirstAppJetPackComposeTheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            // On utilise une couleur solide pour que la barre reste bien visible
-            window.statusBarColor = AccentBlue.toArgb()
-            window.navigationBarColor = AccentBlue.toArgb()
+            // On laisse le système gérer la transparence grâce à enableEdgeToEdge()
+            // Mais on s'assure que les icônes sont de la bonne couleur.
             
             val insetsController = WindowCompat.getInsetsController(window, view)
-            // Icônes blanches sur fond sombre (AccentBlue)
-            insetsController.isAppearanceLightStatusBars = false
-            insetsController.isAppearanceLightNavigationBars = false
+            // On met des icônes sombres par défaut pour le fond Slate50
+            // Sauf si on est sur un écran avec le header bleu (on peut gérer ça par écran)
+            insetsController.isAppearanceLightStatusBars = true 
+            insetsController.isAppearanceLightNavigationBars = true
         }
     }
 

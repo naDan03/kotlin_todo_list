@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -20,18 +21,19 @@ import com.nadan.firstappjetpackcompose.navigation.TodoBottomBar
 import com.nadan.firstappjetpackcompose.navigation.TodoNavHost
 import com.nadan.firstappjetpackcompose.screens.LoginScreen
 import com.nadan.firstappjetpackcompose.screens.SignUpScreen
+import com.nadan.firstappjetpackcompose.ui.theme.AccentBlue
 import com.nadan.firstappjetpackcompose.ui.theme.FirstAppJetPackComposeTheme
+import com.nadan.firstappjetpackcompose.ui.theme.Slate50
 import com.nadan.firstappjetpackcompose.viewmodel.AuthViewModel
 import com.nadan.firstappjetpackcompose.viewmodel.AuthViewModelFactory
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // enableEdgeToEdge() // Supprimé pour éviter que les barres système ne se cachent/deviennent transparentes
+        enableEdgeToEdge()
         setContent {
             FirstAppJetPackComposeTheme {
                 val context = LocalContext.current
-                // On utilise remember pour ne pas recréer le manager à chaque recomposition
                 val authViewModel: AuthViewModel = viewModel(
                     factory = remember { AuthViewModelFactory(AuthManager(context)) }
                 )
@@ -55,13 +57,13 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                     null -> {
-                        // Écran de chargement vide pour éviter le flash du Login
-                        // On pourrait aussi mettre un logo ici (Splash Screen)
-                        androidx.compose.foundation.layout.Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = androidx.compose.ui.Alignment.Center
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Slate50),
+                            contentAlignment = Alignment.Center
                         ) {
-                            androidx.compose.material3.CircularProgressIndicator()
+                            CircularProgressIndicator(color = AccentBlue)
                         }
                     }
                 }
@@ -75,6 +77,7 @@ fun TodoApp(onLogout: () -> Unit) {
     val navController = rememberNavController()
     
     Scaffold(
+        containerColor = Slate50,
         bottomBar = {
             TodoBottomBar(navController = navController)
         }

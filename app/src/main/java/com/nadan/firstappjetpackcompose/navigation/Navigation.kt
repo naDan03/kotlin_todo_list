@@ -123,6 +123,7 @@ fun TodoBottomBar(
     ) {
         Row(
             modifier = Modifier
+                .navigationBarsPadding()
                 .fillMaxWidth()
                 .padding(vertical = 8.dp),
             horizontalArrangement = Arrangement.SpaceEvenly,

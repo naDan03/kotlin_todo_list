@@ -2,7 +2,8 @@
 <resources>
 
     <style name="Theme.FirstAppJetPackCompose" parent="android:Theme.Material.Light.NoActionBar">
-        <item name="android:statusBarColor">#3B82F6</item>
+        <item name="android:statusBarColor">@color/accent_blue</item>
         <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowBackground">@color/slate_50</item>
     </style>
 </resources>
