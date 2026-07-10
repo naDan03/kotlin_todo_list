@@ -15,8 +15,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.nadan.firstappjetpackcompose.data.AuthManager
+import com.nadan.firstappjetpackcompose.navigation.Screen
 import com.nadan.firstappjetpackcompose.navigation.TodoBottomBar
 import com.nadan.firstappjetpackcompose.navigation.TodoNavHost
 import com.nadan.firstappjetpackcompose.screens.LoginScreen
@@ -75,11 +77,21 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun TodoApp(onLogout: () -> Unit) {
     val navController = rememberNavController()
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+
+    val showBottomBar = currentRoute in listOf(
+        Screen.Pending.route,
+        Screen.Completed.route,
+        Screen.Stats.route
+    )
     
     Scaffold(
         containerColor = Slate50,
         bottomBar = {
-            TodoBottomBar(navController = navController)
+            if (showBottomBar) {
+                TodoBottomBar(navController = navController)
+            }
         }
     ) { paddingValues ->
         TodoNavHost(
