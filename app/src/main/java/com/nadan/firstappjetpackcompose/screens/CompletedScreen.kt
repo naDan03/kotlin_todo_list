@@ -1,6 +1,8 @@
 package com.nadan.firstappjetpackcompose.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -13,14 +15,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.nadan.firstappjetpackcompose.data.Todo
-import androidx.compose.foundation.clickable
 import com.nadan.firstappjetpackcompose.ui.components.MainHeader
+import com.nadan.firstappjetpackcompose.ui.theme.*
 import com.nadan.firstappjetpackcompose.viewmodel.TodoViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -35,31 +37,40 @@ fun CompletedScreen(
     val todos by viewModel.todos.collectAsState()
     val completedTodos = remember(todos) { todos.filter { it.isCompleted } }
 
-    val backgroundBrush = Brush.verticalGradient(
-        colors = listOf(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.2f), MaterialTheme.colorScheme.surface)
-    )
-
     Scaffold(
+        containerColor = Slate50,
         topBar = {
             MainHeader(
-                title = "Accompli,",
+                title = "Fait,",
                 onProfileClick = onNavigateToSettings,
                 onLogout = onLogout
             )
         },
-        modifier = modifier.background(backgroundBrush)
+        modifier = modifier
     ) { paddingValues ->
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
+            Text(
+                text = "Historique",
+                style = MaterialTheme.typography.headlineMedium.copy(
+                    fontWeight = FontWeight.Black,
+                    color = AccentBlue,
+                    letterSpacing = (-1).sp
+                ),
+                modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
+            )
+
             if (completedTodos.isEmpty()) {
-                EmptyView("Vous n'avez pas encore terminé de tâches. Courage !", Icons.Rounded.History)
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("Aucune tâche terminée", color = Slate400)
+                }
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp),
+                    contentPadding = PaddingValues(24.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(completedTodos, key = { it.id }) { todo ->
@@ -81,55 +92,48 @@ fun CompletedTodoItem(
     todo: Todo,
     onToggle: () -> Unit,
     onDelete: () -> Unit,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    onClick: () -> Unit
 ) {
-    Card(
-        modifier = modifier
+    Surface(
+        modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() },
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+            .clip(RoundedCornerShape(16.dp))
+            .clickable { onClick() }
+            .border(1.dp, Slate200, RoundedCornerShape(16.dp)),
+        color = Color.White.copy(alpha = 0.6f),
+        tonalElevation = 0.dp
     ) {
         Row(
-            modifier = Modifier
-                .padding(12.dp)
-                .fillMaxWidth(),
+            modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(
-                onClick = onToggle,
+            Box(
                 modifier = Modifier
+                    .size(24.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.secondary.copy(0.1f))
+                    .background(AccentBlue)
+                    .clickable { onToggle() },
+                contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = Icons.Rounded.CheckCircle,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.secondary
-                )
+                Icon(Icons.Rounded.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
             }
 
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(16.dp))
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = todo.title,
                     style = MaterialTheme.typography.bodyLarge.copy(
                         fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                        textDecoration = TextDecoration.LineThrough
-                    )
+                        textDecoration = TextDecoration.LineThrough,
+                        color = Slate400
+                    ),
+                    maxLines = 1
                 )
             }
 
-            IconButton(
-                onClick = onDelete,
-                colors = IconButtonDefaults.iconButtonColors(contentColor = MaterialTheme.colorScheme.error.copy(alpha = 0.5f))
-            ) {
-                Icon(Icons.Rounded.DeleteOutline, contentDescription = "Supprimer")
+            IconButton(onClick = onDelete) {
+                Icon(Icons.Rounded.DeleteOutline, contentDescription = null, tint = Slate300, modifier = Modifier.size(20.dp))
             }
         }
     }

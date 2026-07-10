@@ -27,7 +27,7 @@ import com.nadan.firstappjetpackcompose.viewmodel.AuthViewModelFactory
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        // enableEdgeToEdge() // Supprimé pour éviter que les barres système ne se cachent/deviennent transparentes
         setContent {
             FirstAppJetPackComposeTheme {
                 val context = LocalContext.current

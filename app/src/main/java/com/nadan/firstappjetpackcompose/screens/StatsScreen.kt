@@ -1,6 +1,7 @@
 package com.nadan.firstappjetpackcompose.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -11,13 +12,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.nadan.firstappjetpackcompose.ui.components.MainHeader
+import com.nadan.firstappjetpackcompose.ui.theme.*
 import com.nadan.firstappjetpackcompose.viewmodel.TodoViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -29,18 +31,15 @@ fun StatsScreen(
     modifier: Modifier = Modifier
 ) {
     val todos by viewModel.todos.collectAsState()
-    val pendingCount = remember(todos) { todos.filterNot { it.isCompleted }.size }
-    val completedCount = remember(todos) { todos.filter { it.isCompleted }.size }
+    val pendingCount = remember(todos) { todos.count { !it.isCompleted } }
+    val completedCount = remember(todos) { todos.count { it.isCompleted } }
     val totalCount = remember(todos) { todos.size }
     val completionRate = remember(todos) {
         if (totalCount > 0) (completedCount.toFloat() / totalCount.toFloat()) else 0f
     }
 
-    val backgroundBrush = Brush.verticalGradient(
-        colors = listOf(MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.1f), MaterialTheme.colorScheme.surface)
-    )
-
     Scaffold(
+        containerColor = Slate50,
         topBar = {
             MainHeader(
                 title = "Analyses de",
@@ -48,22 +47,34 @@ fun StatsScreen(
                 onLogout = onLogout
             )
         },
-        modifier = modifier.background(backgroundBrush)
+        modifier = modifier
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(24.dp)
+                .padding(horizontal = 24.dp)
                 .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Carte de Progression Circulaire ou Linéaire Moderne
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(32.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f))
+            Text(
+                text = "Statistiques",
+                style = MaterialTheme.typography.headlineMedium.copy(
+                    fontWeight = FontWeight.Black,
+                    color = AccentBlue,
+                    letterSpacing = (-1).sp
+                ),
+                modifier = Modifier.align(Alignment.Start).padding(vertical = 16.dp)
+            )
+
+            // Progression Card
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(24.dp))
+                    .border(1.dp, Slate200, RoundedCornerShape(24.dp)),
+                color = Color.White
             ) {
                 Column(
                     modifier = Modifier.padding(24.dp),
@@ -72,100 +83,87 @@ fun StatsScreen(
                     Text(
                         "Taux de complétion",
                         style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.primary
+                        color = Slate500,
+                        fontWeight = FontWeight.Bold
                     )
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(24.dp))
                     
                     Box(contentAlignment = Alignment.Center) {
                         CircularProgressIndicator(
                             progress = { completionRate },
                             modifier = Modifier.size(120.dp),
-                            strokeWidth = 12.dp,
-                            trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                            strokeWidth = 10.dp,
+                            color = AccentBlue,
+                            trackColor = Slate100,
                             strokeCap = androidx.compose.ui.graphics.StrokeCap.Round
                         )
                         Text(
                             text = "${(completionRate * 100).toInt()}%",
-                            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.ExtraBold)
+                            style = MaterialTheme.typography.headlineMedium.copy(
+                                fontWeight = FontWeight.Black,
+                                fontSize = 28.sp,
+                                color = Slate900
+                            )
                         )
                     }
                 }
             }
 
-            // Grille de statistiques
+            // Stats Grid
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                ModernStatsCard(
+                StatCard(
                     title = "À faire",
                     value = pendingCount.toString(),
-                    icon = Icons.Rounded.PendingActions,
-                    color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.weight(1f)
                 )
-                ModernStatsCard(
-                    title = "Fait",
+                StatCard(
+                    title = "Terminées",
                     value = completedCount.toString(),
-                    icon = Icons.Rounded.TaskAlt,
-                    color = MaterialTheme.colorScheme.secondary,
                     modifier = Modifier.weight(1f)
                 )
             }
 
-            ModernStatsCard(
-                title = "Total des tâches",
+            StatCard(
+                title = "Total des tâches créées",
                 value = totalCount.toString(),
-                icon = Icons.Rounded.List,
-                color = MaterialTheme.colorScheme.tertiary,
                 modifier = Modifier.fillMaxWidth()
             )
-
-            if (totalCount == 0) {
-                Text(
-                    "Aucune donnée disponible",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 32.dp)
-                )
-            }
+            
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
 
 @Composable
-fun ModernStatsCard(
+fun StatCard(
     title: String,
     value: String,
-    icon: ImageVector,
-    color: Color,
     modifier: Modifier = Modifier
 ) {
-    Card(
-        modifier = modifier,
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    Surface(
+        modifier = modifier
+            .clip(RoundedCornerShape(20.dp))
+            .border(1.dp, Slate200, RoundedCornerShape(20.dp)),
+        color = Color.White
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(20.dp),
             horizontalAlignment = Alignment.Start
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = color,
-                modifier = Modifier.size(28.dp)
-            )
-            Spacer(modifier = Modifier.height(12.dp))
             Text(
                 text = value,
-                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold)
+                style = MaterialTheme.typography.headlineSmall.copy(
+                    fontWeight = FontWeight.Black,
+                    color = Slate900
+                )
             )
             Text(
                 text = title,
                 style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = Slate500
             )
         }
     }

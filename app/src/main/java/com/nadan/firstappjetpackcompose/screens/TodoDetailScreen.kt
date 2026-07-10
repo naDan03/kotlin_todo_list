@@ -1,7 +1,9 @@
 package com.nadan.firstappjetpackcompose.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
@@ -10,10 +12,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.nadan.firstappjetpackcompose.ui.theme.*
 import com.nadan.firstappjetpackcompose.viewmodel.TodoViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -23,33 +27,44 @@ fun TodoDetailScreen(
     viewModel: TodoViewModel,
     onBack: () -> Unit
 ) {
-    // On récupère la vraie donnée depuis le ViewModel
     val todo = remember(todoId) { viewModel.getTodoById(todoId) }
 
-    val backgroundBrush = Brush.verticalGradient(
-        colors = listOf(
-            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f), 
-            MaterialTheme.colorScheme.surface
-        )
-    )
-
     Scaffold(
+        containerColor = Slate50,
         topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text("Détails de la tâche", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Black)) },
-                navigationIcon = {
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp)),
+                color = AccentBlue,
+                shadowElevation = 8.dp
+            ) {
+                Row(
+                    modifier = Modifier
+                        .statusBarsPadding()
+                        .padding(horizontal = 16.dp, vertical = 16.dp)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Rounded.ArrowBack, contentDescription = "Retour")
+                        Icon(Icons.Rounded.ArrowBack, contentDescription = "Retour", tint = Color.White)
                     }
-                },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.Transparent)
-            )
-        },
-        modifier = Modifier.background(backgroundBrush)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        "Détails",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Black,
+                            color = Color.White
+                        )
+                    )
+                }
+            }
+        }
     ) { paddingValues ->
         if (todo == null) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Tâche introuvable")
+                Text("Tâche introuvable", color = Slate500)
             }
         } else {
             Column(
@@ -59,42 +74,56 @@ fun TodoDetailScreen(
                     .padding(24.dp),
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
-                // Carte de titre
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(24.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f))
+                // Info Card
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(24.dp))
+                        .border(1.dp, Slate200, RoundedCornerShape(24.dp)),
+                    color = Color.White
                 ) {
-                    Column(modifier = Modifier.padding(20.dp)) {
+                    Column(modifier = Modifier.padding(24.dp)) {
                         Text(
                             "Titre de la tâche",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.primary
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Slate400,
+                            fontWeight = FontWeight.Bold
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
                             todo.title,
-                            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold)
+                            style = MaterialTheme.typography.headlineSmall.copy(
+                                fontWeight = FontWeight.Black,
+                                color = Slate900,
+                                lineHeight = 30.sp
+                            )
                         )
                     }
                 }
 
-                // Section Info
-                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(24.dp))
+                        .border(1.dp, Slate200, RoundedCornerShape(24.dp))
+                        .background(Color.White)
+                        .padding(24.dp),
+                    verticalArrangement = Arrangement.spacedBy(20.dp)
+                ) {
                     DetailRow(
-                        icon = Icons.Rounded.Description, 
+                        icon = Icons.Rounded.Info, 
                         label = "Statut", 
                         value = if (todo.isCompleted) "Terminée" else "En cours"
                     )
                     DetailRow(
                         icon = Icons.Rounded.Person, 
-                        label = "ID Utilisateur", 
-                        value = "Utilisateur n°${todo.userId}"
+                        label = "Propriétaire", 
+                        value = "Utilisateur #${todo.userId}"
                     )
                     DetailRow(
                         icon = Icons.Rounded.Tag, 
-                        label = "ID Tâche", 
-                        value = "#${todo.id}"
+                        label = "Référence", 
+                        value = "TASK-ID-${todo.id}"
                     )
                 }
 
@@ -106,10 +135,13 @@ fun TodoDetailScreen(
                             viewModel.toggleTodo(todo.id)
                             onBack()
                         },
-                        modifier = Modifier.fillMaxWidth().height(56.dp),
-                        shape = RoundedCornerShape(16.dp)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = AccentBlue)
                     ) {
-                        Text("Marquer comme terminé")
+                        Text("Marquer comme terminé", fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -119,20 +151,20 @@ fun TodoDetailScreen(
 
 @Composable
 fun DetailRow(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, value: String) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.Top
-    ) {
-        Icon(
-            icon, 
-            contentDescription = null, 
-            tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(24.dp)
-        )
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Box(
+            modifier = Modifier
+                .size(36.dp)
+                .clip(CircleShape)
+                .background(Slate50),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(icon, contentDescription = null, tint = AccentBlue, modifier = Modifier.size(18.dp))
+        }
         Spacer(modifier = Modifier.width(16.dp))
         Column {
-            Text(label, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text(value, style = MaterialTheme.typography.bodyLarge)
+            Text(label, style = MaterialTheme.typography.labelSmall, color = Slate400)
+            Text(value, style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold, color = Slate900))
         }
     }
 }

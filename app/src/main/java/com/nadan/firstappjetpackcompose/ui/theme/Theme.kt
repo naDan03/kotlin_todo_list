@@ -1,6 +1,8 @@
 package com.nadan.firstappjetpackcompose.ui.theme
 
 import android.app.Activity
+import android.os.Build
+import android.view.WindowManager
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
@@ -12,15 +14,31 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+    primary = Color.White,
+    secondary = Slate400,
+    tertiary = Slate300,
+    background = Slate950,
+    surface = Slate900,
+    onPrimary = Slate950,
+    onSecondary = Color.White,
+    onTertiary = Color.White,
+    onBackground = Color.White,
+    onSurface = Color.White,
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
+    primary = AccentBlue,
+    secondary = Slate600,
+    tertiary = Slate500,
+    background = Slate50,
+    surface = Color.White,
+    onPrimary = Color.White,
+    onSecondary = Color.White,
+    onTertiary = Color.White,
+    onBackground = Slate900,
+    onSurface = Slate900,
+    outline = Slate300,
+    outlineVariant = Slate200
 )
 
 @Composable
@@ -35,10 +53,14 @@ fun FirstAppJetPackComposeTheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            // On met la barre de statut transparente pour le design moderne
-            window.statusBarColor = Color.Transparent.toArgb()
-            // IMPORTANT : On force les icônes en mode sombre (car le fond est clair)
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = true
+            // On utilise une couleur solide pour que la barre reste bien visible
+            window.statusBarColor = AccentBlue.toArgb()
+            window.navigationBarColor = AccentBlue.toArgb()
+            
+            val insetsController = WindowCompat.getInsetsController(window, view)
+            // Icônes blanches sur fond sombre (AccentBlue)
+            insetsController.isAppearanceLightStatusBars = false
+            insetsController.isAppearanceLightNavigationBars = false
         }
     }
 
